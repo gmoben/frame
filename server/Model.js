@@ -1,52 +1,47 @@
 /* jshint -W033 */
-import Schema from 'mongoose';
+/* jshint -W030 */
+import {Schema} from 'mongoose';
 import relationship from 'mongoose-relationship';
 import express from 'express';
-import forEach from 'lodash/collection';
-import flatten from 'lodash';
-import merge from 'lodash';
-import filter from 'lodash';
-import isObject from 'lodash';
-var mongoose = require('mongoose-q')();
+import {forEach, flatten, merge, transform, isObject} from 'lodash';
+import mongoose from 'mongoose';
 
-function handleError(res, err) {
-  return res.send(500, err);
-}
+import ModelError from './errors';
 
-class ModelError extends Error {
-  constructor(responseCode, message) {
-    super(message);
-    this.name = "ModelError";
-    this.responseCode = responseCode;
-  }
-}
+export const DEFAULT_ROUTES = [
+  ['/', {
+    get: 'index',
+    post: 'create'
+  }],
+  ['/:id', {
+    get: 'read',
+    put: 'update',
+    patch: 'update',
+    delete: 'delete',
+  }]
+];
 
 export default class ServerModel {
   /**
-   * Default constructor.
-   *
-   * @param  {object} options
-   * @param  {object} options.name Class name. Set if not using a subclass.
-   * @param  {object} options.schema Mongoose schema. Alternatively, the schema
-   *                                 may be set in subclass constructor prior to
-   *                                 calling super().
-   * @param  {Array<String>}  options.virtuals  Virtual functions for schema
-   * @param  {object} options.socket    Socket.io instance
-   * @param  {object} options.emitHooks Hooks on which to emit socket events.
-   *                                    e.g. {pre: ['save', ...], post: [...]}
+   * @param  {Object}   schema              Mongoose schema configuration.
+   * @param  {Object}   options
+   * @param  {mongoose} mongoose            mongoose instance
+   * @param  {Object}   [options.name]      Class name. Set if not using a subclass.
+   * @param  {string[]} [options.virtuals]  Virtual functions for schema
    */
-  constructor({name, schema, socket, emitHooks, virtuals}) {
+  constructor(schema, {name, virtuals, routes, mongoose}={}) {
+    this.schema = schema;
     this.modelName = name || this.constructor.name;
-    this.schema = this.schema || schema;
-    this.emitHooks = emitHooks;
-    this.socket = socket;
+    this.mongoose = mongoose;
 
     // Find path names for mongoose-relationship
-    let rpn = Object.keys(filter(schema, (v, k) => v.hasOwnProperty('childPath')));
+    let rpn = transform(schema, (acc, v, k) => {
+      if (v.hasOwnProperty('childPath')) acc.push(k);
+    }, []);
     if (rpn) this.schema.plugin(relationship, {relationshipPathName: rpn});
 
     // Assign virtuals if they exist on the class
-    virtuals.forEach(name => {
+    if (virtuals) virtuals.forEach(name => {
       forEach(Object.getOwnPropertyDescriptor(this, name), (val, key) => {
         if (['get', 'set'].includes(key))
           this.schema.virtual(name)[key](val);
@@ -57,20 +52,9 @@ export default class ServerModel {
      * `express` route definitions.
      * Routes will not be assigned until `this.router` is accessed.
      *
-     * @type {Array<Array>}
+     * @type {Array[]}
      */
-    this.routes = [
-    	['/', {
-    		get: 'index',
-    		post: 'create'
-    		}],
-    		['/:id', {
-    			get: 'read',
-    			put: 'update',
-    			patch: 'update',
-    			delete: 'delete',
-    		}]
-    ];
+    this.routes = routes || DEFAULT_ROUTES;
   }
 
   /**
@@ -85,38 +69,42 @@ export default class ServerModel {
 
   /**
    * `mongoose.Schema` instance.
-   * @return {obj}
+   * @return {mongoose.Schema}
    */
-  static get schema() {
+  get schema() {
     if (!this._schema) throw new Error('Schema not defined.');
     return this._schema;
   }
-  static set schema(obj) {
+  set schema(obj) {
     this._schema = new Schema(obj);
   }
 
   /**
-   * `socket.io` instance.
-   * @return {object}
+   * Set `socket.io` instance and mongoose pre/post hooks.
+   * @param  {Object}   [options.socket]    Socket.io instance
+   * @param  {Object}   [options.emitOn]    Emit events on mongoose hooks.
+   *                                        e.g. `{pre: ['save', ...], post: [...]}`
    */
-  get socket() { return this._socket }
-  set socket(socket) {
-    this._socket = socket;
+  setSocket(socket, emitOn) {
+    this.socket = socket;
     // Emit events on specified `mongoose` hooks
-    if (this.socket && this.emitHooks) {
-      forEach(this.emitHooks, (state, hooknames) => {
+    if (this.socket && emitOn) {
+      forEach(this.emitOn, (hooknames, state) => {
         hooknames.forEach(name => {
-          schema[state](name, doc => {
-            let eventName = [[state, name].join('_'), this.constructor.name].join(':');
-            socket.emit(eventName);
+          this.schema[state](name, doc => {
+            this.socket.emit([state, name].join(''), {
+              model: this.modelName,
+              doc
+            });
           });
         });
       });
+    }
   }
 
   /**
    * `express.Router` instance.
-   * @type {object}
+   * @type {express.Router}
    */
   get router() {
     if (!this._router) {
@@ -127,7 +115,7 @@ export default class ServerModel {
         let [routes, methods] = def;
         flatten([routes]).forEach(route => {
           forEach(methods, (callbackName, restMethod) => {
-            this._router[restMethod](route, this._handle(callbackName)));
+            this._router[restMethod](route, this._handle(callbackName));
           });
         });
       });
@@ -137,7 +125,7 @@ export default class ServerModel {
 
   /**
    * Generate a request handler for a given method.
-   * @param  {String} method Method to assign. Must exist on the class.
+   * @param  {string} method Method to assign. Must exist on the class.
    * @return {function}      Express request handler.
    * @private
    */
@@ -155,26 +143,32 @@ export default class ServerModel {
 
   /**
    * Retrieve all documents.
-   * @return {Promise<Array>}  [result, responseCode]
+   * @return {Promise.<Array>}  [result, responseCode]
    */
   index() {
-    this.model.findQ().then(result => [result, 200]);
+    return this.model.findQ().then(result => [result, 200]);
   }
 
   /**
    * Create a new document.
    * @param {obj} props Document property values
-   * @return {Promise<Array>}  [result, responseCode]
+   * @return {Promise.<Array>}  [result, responseCode]
    */
   create(props) {
-    this.model.createQ(props).then(result => [result, 201]);
+    // return this.model.createQ(props).then(result => [result, 201]);
+    return new Promise((resolve, reject) => {
+      this.model.create(props, (err, result) => {
+        console.log(result);
+        if (err) reject(err);
+        resolve(result);
+      })
+    });
   }
 
   /**
    * Retrieve a document.
-   * @param {Number} id Document id.
-   * @return {Promise<object>} The requested document.
-   * @return {Promise<Array>}  [result, responseCode]
+   * @param {number} id Document id.
+   * @return {Promise.<Array>}  [result, responseCode]
    */
   get(id) {
     return this.model.findByIdQ(id)
@@ -186,9 +180,9 @@ export default class ServerModel {
 
   /**
    * Update an existing document.
-   * @param  {Number} id    Document id.
-   * @param  {object} props Properties to update.
-   * @return {Promise<Array>}  [result, responseCode]
+   * @param  {number} id    Document id.
+   * @param  {Object} props Properties to update.
+   * @return {Promise.<Array>}  [result, responseCode]
    */
   update(id, props) {
     if ('_id' in props) delete props._id;
@@ -203,8 +197,8 @@ export default class ServerModel {
 
   /**
    * Delete a document.
-   * @param  {Integer} id Document id
-   * @return {Promise<Array>}  [undefined, responseCode]
+   * @param  {number} id Document id
+   * @return {Promise.<Array>}  [undefined, responseCode]
    */
   delete(id) {
     return this.model.findByIdQ(id)

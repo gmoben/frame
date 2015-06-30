@@ -1,11 +1,11 @@
-import Model from 'frame/server';
-import ref from 'server/utils';
+import Model from '../Model';
+import ref from '../utils';
 import crypto from 'crypto';
-import merge from 'lodash';
+import {merge} from 'lodash';
 
 class User extends Model {
   constructor() {
-    this.schema = {
+    let schema = {
       name: String,
       email: {type: String, lowercase: true},
       role: {
@@ -16,7 +16,7 @@ class User extends Model {
       provider: String,
       salt: String
     };
-    super(merge({virtuals: ['password', 'profile', 'token']}, args));
+    super(merge({schema, virtuals: ['password', 'profile', 'token']}, args));
   }
 
   /**
