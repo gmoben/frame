@@ -1,13 +1,16 @@
-class ModelError extends Error {
-  constructor(responseCode, message) {
-    super(message);
+export class ModelError extends Error {
+  constructor(responseCode, msg) {
+    super(msg);
     this.name = "ModelError";
     this.responseCode = responseCode;
   }
 }
 
-export {ModelError};
-
-export default {
-  ModelError: ModelError
+export class AppError extends Error {
+  constructor(msg) {
+    super(msg);
+    this.name = "AppError";
+  }
 }
+
+export default {ModelError, AppError}
