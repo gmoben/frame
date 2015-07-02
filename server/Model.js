@@ -6,7 +6,8 @@ import express from 'express';
 import {forEach, flatten, merge, transform,
         isEmpty, isString, mapValues} from 'lodash';
 
-import ModelError from './errors';
+import ModelError from 'server/errors';
+import MongooseHandler from 'server/handlers/Mongoose';
 
 export const DEFAULT_ROUTES = [
   ['/', {
@@ -24,30 +25,24 @@ export const DEFAULT_ROUTES = [
 /**
  * Construct a new model by passing configuration options directly.
  *
- * Alternatively pass an object mapping model names to its corresponding
- * arguments.
- *
- * @param  {string}         name        Model name. Specify if not using a
- *                                      subclass.
- * @param  {Object}         schema      Schema configuration.
- * @param  {Array.<Array>}  [routes]    `express` route definitions.
- * @param  {Array.<string>} [virtuals]  Class properties to assign as schema
- *                                      virtuals.
- * @param  {Object}         [populate]  Schema `doc.toObject` options.
- *                                              Default: `{getters: true}`
+ * @param  {string} name    Model name.
+ * @param  {Object} schema  Schema configuration.
+ * @param  {Object} [options] Model options.
+ * @param  {Handler} [options.handler] Override default route handler.
  */
-export function ModelFactory(name, schema, options) {
+export function ModelFactory(name, schema, options={}) {
   if (!isString(name) && !isEmpty(name))
     return mapValues(args, (v, k) => ModelFactory(k, v));
 
-  return new Model(schema, merge({name}, options));
+  let {handler} = options;
+  if (handler) delete options.handler;
+  return new Model(schema, merge({name}, options), handler);
 }
 
 /**
  * Server-side data model.
- * @abstract
  */
-export default class Model {
+export default class MongooseModel {
   /**
    * @param  {Object}         schema              Schema configuration.
    * @param  {Object}         options
@@ -56,15 +51,16 @@ export default class Model {
    * @param  {Array.<string>} [options.virtuals]  Class properties to assign as schema virtuals.
    * @param  {Object}         [options.populate]  Schema `doc.toObject` options.
    *                                              Default: `{getters: true}`
+   * @param  {Object}         [handler]           Override default request handler.
    */
-  constructor(schema, {name, routes, virtuals, populate}={}) {
+  constructor(schema, {name, routes, virtuals, populate}, handler=MongooseHandler) {
     this.modelName = name || this.constructor.name;
-    this.routes = routes || DEFAULT_ROUTES;
-
     if (this.modelName == 'Model')
       throw new ModelError('Must specify model name if not using a subclass');
 
     this.setSchema(schema, virtuals, populate || { getters: true });
+    this.routes = routes || DEFAULT_ROUTES;
+    this.handler = new handler(this.model);
   }
 
   /**
@@ -80,10 +76,10 @@ export default class Model {
    * Build and return mongoose Schema.
    * @param {object}         schema   Schema definition.
    * @param {Array.<string>} [virtuals] Property names of virtual functions
-   * @param {Object}         [populate] Schema `doc.toObject` options
+   * @param {Object}         [toObject] Schema `doc.toObject` options
    * @return {mongoose.Schema}
    */
-  setSchema(schema, virtuals, populate) {
+  setSchema(schema, virtuals, toObject) {
     if (this.schema) {throw new ModelError('Schema already defined.');}
     this._schema = new Schema(schema);
 
@@ -99,10 +95,10 @@ export default class Model {
       forEach(Object.getOwnPropertyDescriptor(this, name), (val, key) => {
         if (['get', 'set'].includes(key))
           this.schema.virtual(name)[key](val);
-        });
+      });
     });
 
-    if (populate) this.schema.set
+    if (toObject) this.schema.set('toObject', toObject);
 
     return this.schema;
   }
@@ -117,16 +113,6 @@ export default class Model {
     return this._model;
   }
 
-  /** @type {string} */
-  get routes() {
-    return this._routes;
-  }
-  set routes(obj) {
-    if (this._routes && this._router)
-      throw new ModelError('Router already in use. Unable to set routes.');
-    this._routes = obj;
-  }
-
   /** @type {express.Router} */
   get router() {
     if (!this._router) {
@@ -137,8 +123,8 @@ export default class Model {
       routeMap.forEach(def => {
         let [routes, methods] = def;
         flatten([routes]).forEach(route => {
-          forEach(methods, (callbackName, restMethod) => {
-            this._router[restMethod](route, this._handle(callbackName));
+          forEach(methods, (methodName, restMethod) => {
+            this.router[restMethod](route, this.handler.handle(methodName));
           });
         });
       });
@@ -149,18 +135,18 @@ export default class Model {
   /**
    * Set `socket.io` instance and mongoose pre/post hooks.
    * @param  {socketio.Socket}   [options.socket]    Socket.io instance
-   * @param  {Object}   [options.emitOn]    Mongoose hooks on which to emit events.
+   * @param  {Object}   [options.events]    Mongoose hooks on which to emit events.
    *                                        Defaults to all hooks.
    */
-  addSocket(socket, emitOn) {
+  addSocket(socket, events) {
     this.socket = socket;
-    if (!emitOn || isEmpty(emitOn)) emitOn = {
+    if (!events || isEmpty(events)) events = {
       pre: ['init', 'validate', 'save', 'remove'],
       post: ['init', 'validate', 'save', 'remove']
     };
     // Emit events on specified `mongoose` hooks
-    if (this.socket && emitOn) {
-      forEach(this.emitOn, (hooknames, state) => {
+    if (this.socket && events) {
+      forEach(events, (hooknames, state) => {
         hooknames.forEach(name => {
           this.schema[state](name, doc => {
             this.socket.emit([state, name].join(''), {
@@ -172,111 +158,5 @@ export default class Model {
       });
     }
   }
-
-  /**
-   * Generate a request handler for a given method.
-   * @param  {string} method Method to assign. Must exist on the class.
-   * @return {function}      Request handler.
-   * @private
-   */
-  _handle(method) {
-    if (!this[method]) throw new Error('Unknown method', method);
-    return (req, res) => {
-      this[method](args)
-        .then((result, code) => {
-          if (result) return res.json(code, result);
-          return res.send(code, result);
-        }).catch((err, code) => {
-          return res.send(code, err);
-        });
-    };
-  }
-
-  /**
-   * Retrieve all documents.
-   * @return {Promise.<Array>}  [result, responseCode]
-   */
-  index() {
-    return this.find();
-  }
-
-  /**
-   * Create a new document.
-   * @param {obj} props Document property values
-   * @return {Promise.<Array>}  [result, responseCode]
-   */
-  create(props) {
-    // return this.model.createQ(props).then(result => [result, 201]);
-    return new Promise((resolve, reject) => {
-      this.model.create(props)
-        .then((err, result) => {
-          if (err) reject(err);
-          resolve(result, 201)
-        });
-    });
-  }
-
-  /**
-   * Retrieve documents with matching props.
-   * @param  {Object} props Search criteria.
-   * @return {Promise.<Array>} [result, responseCode]
-   */
-  find(props={}) {
-    return new Promise((resolve, reject) => {
-      this.model.find(props)
-        .then((err, result) => {
-          if (err) reject(err);
-          if (!result) reject('No models found.', 404);
-          resolve(result, 200);
-        });
-    });
-  }
-
-  /**
-   * Retrieve a document by id.
-   * @param {number} id Document id.
-   * @return {Promise.<Array>}  [result, responseCode]
-   */
-  findById(id) {
-    return this.find(props={_id: id})
-  }
-
-  /**
-   * Update an existing document.
-   * @param  {number} id    Document id.
-   * @param  {Object} props Properties to update.
-   * @return {Promise.<Array>}  [result, responseCode]
-   */
-  update(id, props) {
-    return new Promise((resolve, reject) => {
-      if ('_id' in props) delete props._id;
-      this.model.findByIdQ(id)
-        .then(result => {
-          if (!result) reject(new ModelError('Docid ' + id + ' not found'));
-          merge(result, props).save((err, doc) => {
-            if (err) reject(err, 500);
-            resolve(result, 201);
-          });
-        });
-    });
-  }
-
-  /**
-   * Delete a document.
-   * @param  {number} id Document id
-   * @return {Promise.<Array>}  [undefined, responseCode]
-   */
-  delete(id) {
-    return new Promise((resolve, reject) => {
-      this.model.findById(id)
-        .then((err, result) => {
-          if (err) reject(err, 500);
-          if (!result) reject('Model id ' + id + ' not found.', 404);
-          result.remove(err => {
-            if (err) reject(err, 500);
-            resolve(undefined, 204);
-          });
-        });
-    });
-  }
+  
 }
