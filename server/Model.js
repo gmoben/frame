@@ -3,17 +3,18 @@
 import mongoose, {Schema} from 'mongoose';
 import relationship from 'mongoose-relationship';
 import express from 'express';
-import {forEach, flatten, merge, transform, isObject, isEmpty} from 'lodash';
+import {forEach, flatten, merge, transform,
+        isEmpty, isString, mapValues} from 'lodash';
 
 import ModelError from './errors';
 
 export const DEFAULT_ROUTES = [
   ['/', {
-    get: 'index',
+    get: 'find',
     post: 'create'
   }],
   ['/:id', {
-    get: 'get',
+    get: 'findById',
     put: 'update',
     patch: 'update',
     delete: 'delete',
@@ -22,11 +23,30 @@ export const DEFAULT_ROUTES = [
 
 /**
  * Construct a new model by passing configuration options directly.
+ *
+ * Alternatively pass an object mapping model names to its corresponding
+ * arguments.
+ *
+ * @param  {string}         name        Model name. Specify if not using a
+ *                                      subclass.
+ * @param  {Object}         schema      Schema configuration.
+ * @param  {Array.<Array>}  [routes]    `express` route definitions.
+ * @param  {Array.<string>} [virtuals]  Class properties to assign as schema
+ *                                      virtuals.
+ * @param  {Object}         [populate]  Schema `doc.toObject` options.
+ *                                              Default: `{getters: true}`
  */
-export function ModelFactory(name, schema, routes, virtuals) {
-  return new Model(schema, {name, routes, virtuals});
+export function ModelFactory(name, schema, options) {
+  if (!isString(name) && !isEmpty(name))
+    return mapValues(args, (v, k) => ModelFactory(k, v));
+
+  return new Model(schema, merge({name}, options));
 }
 
+/**
+ * Server-side data model.
+ * @abstract
+ */
 export default class Model {
   /**
    * @param  {Object}         schema              Schema configuration.
@@ -132,7 +152,7 @@ export default class Model {
    * @param  {Object}   [options.emitOn]    Mongoose hooks on which to emit events.
    *                                        Defaults to all hooks.
    */
-  setSocket(socket, emitOn) {
+  addSocket(socket, emitOn) {
     this.socket = socket;
     if (!emitOn || isEmpty(emitOn)) emitOn = {
       pre: ['init', 'validate', 'save', 'remove'],
@@ -162,12 +182,13 @@ export default class Model {
   _handle(method) {
     if (!this[method]) throw new Error('Unknown method', method);
     return (req, res) => {
-      this[method](args).then(([result, code]) => {
-        if (result) return res.json(code, result);
-        return res.send(code);
-      }).catch(err => {
-        return res.send(500, err);
-      });
+      this[method](args)
+        .then((result, code) => {
+          if (result) return res.json(code, result);
+          return res.send(code, result);
+        }).catch((err, code) => {
+          return res.send(code, err);
+        });
     };
   }
 
@@ -176,7 +197,7 @@ export default class Model {
    * @return {Promise.<Array>}  [result, responseCode]
    */
   index() {
-    return this.model.findQ().then(result => [result, 200]);
+    return this.find();
   }
 
   /**
@@ -186,8 +207,29 @@ export default class Model {
    */
   create(props) {
     // return this.model.createQ(props).then(result => [result, 201]);
-    return this.model.create(props)
-      .then(result => [result, 201]);
+    return new Promise((resolve, reject) => {
+      this.model.create(props)
+        .then((err, result) => {
+          if (err) reject(err);
+          resolve(result, 201)
+        });
+    });
+  }
+
+  /**
+   * Retrieve documents with matching props.
+   * @param  {Object} props Search criteria.
+   * @return {Promise.<Array>} [result, responseCode]
+   */
+  find(props={}) {
+    return new Promise((resolve, reject) => {
+      this.model.find(props)
+        .then((err, result) => {
+          if (err) reject(err);
+          if (!result) reject('No models found.', 404);
+          resolve(result, 200);
+        });
+    });
   }
 
   /**
@@ -196,24 +238,7 @@ export default class Model {
    * @return {Promise.<Array>}  [result, responseCode]
    */
   findById(id) {
-    return this.model.findById(id)
-      .then(result => {
-        if (!result) throw new ModelError(404);
-        return [result, 200];
-      });
-  }
-
-  /**
-   * Retrieve documents with matching props.
-   * @param  {Object} props Search criteria.
-   * @return {Promise.<Array>} [result, responseCode]
-   */
-  find(props) {
-    return this.model.find(props)
-      .then(result => {
-        if (!result) throw new ModelError(404);
-        return [result, 200];
-      });
+    return this.find(props={_id: id})
   }
 
   /**
@@ -229,8 +254,8 @@ export default class Model {
         .then(result => {
           if (!result) reject(new ModelError('Docid ' + id + ' not found'));
           merge(result, props).save((err, doc) => {
-            if (err) reject(err);
-            resolve([result]);
+            if (err) reject(err, 500);
+            resolve(result, 201);
           });
         });
     });
@@ -242,13 +267,16 @@ export default class Model {
    * @return {Promise.<Array>}  [undefined, responseCode]
    */
   delete(id) {
-    return this.model.findByIdQ(id)
-      .then(result => {
-        if (!result) throw new ModelError(404);
-        result.remove(err => {
-          if (err) throw new ModelError(500, err);
-          return [undefined, 204];
+    return new Promise((resolve, reject) => {
+      this.model.findById(id)
+        .then((err, result) => {
+          if (err) reject(err, 500);
+          if (!result) reject('Model id ' + id + ' not found.', 404);
+          result.remove(err => {
+            if (err) reject(err, 500);
+            resolve(undefined, 204);
+          });
         });
-      });
+    });
   }
 }
