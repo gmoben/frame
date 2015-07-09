@@ -1,0 +1,21 @@
+{
+  "parser": "babel-eslint",
+  "emcafeatures": {
+    "modules": true
+  },
+  "env": {
+    "node": true,
+    "mocha": true,
+    "es6": true,
+  },
+  "rules": {
+    "quotes": [1, "single", "avoid-escape"],
+    "no-this-before-super": 2,
+    "constructor-super": 2,
+    "strict": 0,
+    "no-underscore-dangle": 0,
+    "curly": 0,
+    "new-cap": 0,
+    "no-proto": 0,
+  }
+}

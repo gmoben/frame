@@ -6,4 +6,4 @@ export function ref(name, childPath) {
 		ref: name,
 		childPath
 	};
-}
+};

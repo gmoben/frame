@@ -1,9 +1,7 @@
-import Model from '../Model';
-import ref from '../utils';
+import MongooseModel from 'server/models/MongooseModel';
 import crypto from 'crypto';
-import {merge} from 'lodash';
 
-class User extends Model {
+class User extends MongooseModel {
   constructor() {
     let schema = {
       name: String,
@@ -16,7 +14,7 @@ class User extends Model {
       provider: String,
       salt: String
     };
-    super(merge({schema, virtuals: ['password', 'profile', 'token']}, args));
+    super(schema, {virtuals: ['password', 'profile', 'token']});
   }
 
   /**

@@ -1,13 +1,14 @@
-import chai, {expect, assert} from 'chai';
-import SocketIOClient from 'socket.io-client';
-import App from 'server/App';
-import models from './fixtures';
-import {ModelFactory} from 'server/Model';
+/*eslint-disable no-unused-expressions*/
+import chai, {expect} from 'chai';
+
+// import socketIOClient from 'socket.io-client';
+import App from 'server/core/App';
+import {models, config} from './fixtures';
 
 chai.should();
 
 const PORT = 5000;
-const HOSTNAME = 'localhost';
+const HOSTNAME = '127.0.0.1';
 const DB = 'test';
 
 describe('App', () => {
@@ -17,17 +18,19 @@ describe('App', () => {
     app = new App(models, config);
   });
 
-  after(() => {
-    app.close();
+  after(done => {
+    app.close()
+      .then(() => done())
+      .catch(() => done());
   });
 
   describe('interactions with other instances', () => {
-    let app2;
-    let 
-
-    before(() => {
-      app2 = new App();
-    })
+    //   let app2;
+    //
+    //   before(() => {
+    //     app2 = new App();
+    //   });
+    //
     it('allows other Apps to run simultaneously');
     it('shares a common mongoose instance');
   });
@@ -35,8 +38,7 @@ describe('App', () => {
   describe('#constructor()', () => {
     it('sets up express and socket.io', () => {
       ['app', 'server', 'io'].forEach(key => {
-        expect(app).to.have.key(key);
-        expect(app[key]).to.exist();
+        expect(app[key]).to.exist;
       });
     });
   });
@@ -45,26 +47,23 @@ describe('App', () => {
     afterEach(done => {
       app.close()
         .then(() => done())
-        .catch(err => {throw err;});
+        .catch(err => done(err));
     });
 
-    it('requires a port but not a hostname', () => {
+    it('requires a port but not a hostname', done => {
       app.listen(PORT)
-        .then(() => app.close())
-        .then(() => app.listen())
-        .catch(err => done())
-        .then(() => {
-          throw Error('Supposed to require a hostname');
-        });
-    })
+        .then(() => done())
+        .catch(err => done(err));
+    });
 
-    it('returns a promise for server.address()', () => {
-      let promise = app.listen(PORT);
-      promise.should.be.a.Promise();
-      promise.then(address => {
-        address.should.have.keys('address', 'port');
-        done();
-      })
+    it('returns a promise for server.address()', done => {
+      app.listen(PORT)
+        .then(address => {
+          expect(address.address).to.exist;
+          expect(address.port).to.exist;
+          done();
+        })
+        .catch(err => done(err));
     });
 
     it('causes server to listen on the specified port and address', done => {
@@ -76,13 +75,6 @@ describe('App', () => {
         }).catch(err => done(err));
     });
 
-    it('sets app.ioClient', done => {
-      app.listen(PORT,HOSTNAME)
-        .then(() => {
-          should.exist(app.ioClient);
-          done();
-        }).catch(err => done(err));
-    });
   });
 
   describe('#close()', () => {
@@ -93,50 +85,50 @@ describe('App', () => {
     it('closes the server', done => {
       app.close()
         .then(msg => {
-          msg.should.be.a.String();
+          expect(msg).to.be.a.String;
           done();
-        }).catch(err => {throw err;});
+        }).catch(done);
     });
 
-    it('deletes app.ioClient', done => {
-      app.close()
-        .then(() => {
-          app.should.not.have.key('ioClient');
-          done();
-        });
-    });
   });
 
   describe('#connectDB()', () => {
     beforeEach(done => {
-      app.listen(PORT).then(() => done());
+      app.listen(PORT)
+        .then(() => app.disconnectDB())
+        .then((msg) => {
+          console.log(msg); done();
+        })
+               .catch(done);
     });
 
     afterEach(done => {
-      mongoose.disconnect();
+      app.close().then(() => done()).catch(done);
     });
 
     it('returns a promise', done => {
-      let promise = app.connectDB(HOSTNAME, DB);
-      promise.should.be.a.Promise();
-      promise.then(() => done());
+      app.connectDB(HOSTNAME, DB)
+        .then(() => done())
+        .catch(done);
     });
 
     it('connects to an active mongodb instance', done => {
       app.connectDB(HOSTNAME, DB)
         .then(uri => {
-          expect(uri).to.be('mongodb://' + HOSTNAME + ':' + DB);
+          expect(uri).to.equal('mongodb://127.0.0.1/test');
           done();
         })
+        .catch(done);
     });
 
-    it('defaults to localhost/test', done => {
+    it('defaults to 127.0.0.1/test', done => {
       app.connectDB()
         .then(uri => {
-          expect(uri).to.be('mongodb://localhost/test');
+          expect(uri).to.equal('mongodb://127.0.0.1/test');
           done();
         })
-    })
+        .catch(done);
+    });
 
     it('throws on invalid params', done => {
       app.connectDB(1029387.42, 'lolol')
@@ -146,10 +138,9 @@ describe('App', () => {
   });
 
   describe('#addSocket()', () => {
-    let io = SocketIOClient('ws://' + uri);
-    it('adds a listener socket to all app.models', () => {
-
-    });
-  })
+    //   const URI = HOSTNAME + ':' + DB;
+    //   let io = socketIOClient('ws://' + URI);
+    it('adds a listener socket to all app.models');
+  });
 
 });

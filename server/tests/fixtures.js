@@ -1,14 +1,15 @@
-import {ModelFactory} from '../Model';
-import {mapValues} from 'lodash';
+import MongooseModel from 'server/models/MongooseModel';
+import {ref} from 'server/utils';
 
 let schemas = {
   'Album': [{title: String, photos: [ref('Photo')]}],
   'Photo': [{url: String, album: ref('Album', 'photos')}]
-}
-export var models = ModelFactory(schemas);
+};
+
+export var models = MongooseModel.factory(schemas);
 
 export var config = {
-  express: (app) => {},
-}
+  express: () => {}
+};
 
-export default {models}
+export default {models, config};

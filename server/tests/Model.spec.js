@@ -1,43 +1,52 @@
-import should from 'should';
 
-import {App, Model} from 'server';
-import models from './fixtures';
+import chai, {expect} from 'chai';
+chai.should();
+
+import Model from 'server/core/Model';
+import MongooseHandler from 'server/handlers/MongooseHandler';
+import {ModelError} from 'server/errors';
+
+import DEFAULT_ROUTES from 'server/constants';
+
+const MODEL_NAME = 'ModelExample';
+const HANDLER = MongooseHandler;
 
 describe('Model', () => {
-  let app;
+  describe('#constructor()', function() {
+    let model = new Model({
+      name: MODEL_NAME,
+      routes: DEFAULT_ROUTES
+    }, HANDLER);
 
-  before(done => {
-    app = new App(models, config);
-  });
+    it('requires a model name if not a subclass', () => {
+      expect(model.modelName).to.equal(MODEL_NAME);
 
-  beforeEach(done => {
-
-  });
-
-  it('automatically creates parent-child relationships', (done) => {
-    let album = Album.create({title: 'Kittens'});
-    let photos = ['gizmo.jpg', 'luna.png'].map(url => {
-      return Photo.create({url, album: album._id});
-    });
-    Album.find({title})
-      .then(album => {
-        album.photos.should.be.an.Array();
-        album.photos.length.should.be.exactly(2);
-      })
-  });
-
-  describe('relationships', done => {
-    let {Album, Photo} = app.models;
-
-    before(() => {
+      try {
+        /*eslint-disable no-new*/
+        new Model({routes: DEFAULT_ROUTES}, HANDLER);
+        /*eslint-enable no-new*/
+      } catch (err) {
+        expect(err).to.be.an.instanceOf(ModelError);
+      }
     });
 
+    it('creates a handler instance from supplied Handler class', () => {
+      expect(model.handler).to.be.an.instanceOf(HANDLER);
+    });
+
+    it('assigns handler functions to itself', () => {
+      let hProps = Object.getOwnPropertyNames(model.handler.__proto__);
+      hProps.forEach(prop => {
+        if (prop !== 'constructor') {
+          expect(model[prop]).to.be.a('function');
+          expect(model[prop]).to.equal(model.handler[prop]);
+        }
+      });
+    });
+
+    it('holds a reference to the handler\'s router instance', () => {
+      expect(model.router).to.equal(model.handler.router);
+    });
 
   });
-
 });
-
-describe('Model relationships', () => {
-
-
-})

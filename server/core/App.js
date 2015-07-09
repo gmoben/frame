@@ -1,10 +1,8 @@
 import express from 'express';
 import http from 'http';
 import SocketIO from 'socket.io';
-import SocketIOClient from 'socket.io-client';
 import mongoose from 'mongoose';
 import {values} from 'lodash';
-import {AppError} from './errors';
 
 export default class App {
   /**
@@ -43,16 +41,18 @@ export default class App {
    */
   listen(port, hostname='localhost') {
     return new Promise((resolve, reject) => {
-      this.server.listen(port, hostname, () => {
-        let {address, port} = this.server.address();
-        let uri = address + ':' + port;
+      this.server.listen(port, hostname, err => {
+        if (err) reject(err);
+        let addr = this.server.address();
+        let uri = addr.address + ':' + addr.port;
         console.log('[express]', 'Listening @ ', uri);
 
         // /** @member {socket.io-client.Manager} */
         // this.ioClient = SocketIOClient('ws://' + uri);
 
-        this.connectDB(address);
-        resolve({address, port});
+        this.connectDB(addr.address)
+          .then(() => resolve(addr))
+          .catch(err => reject(err));
       });
     });
   }
@@ -65,11 +65,9 @@ export default class App {
     return new Promise((resolve, reject) => {
       this.server.close(err => {
         if (err) reject(err);
-        delete this[ioClient];
-        mongoose.disconnect(err => {
-          if (err) reject(err);
-          resolve('Closed successfully.');
-        });
+        this.disconnectDB()
+          .then(resolve)
+          .catch(reject);
       });
     });
   }
@@ -82,13 +80,28 @@ export default class App {
    * @param {Object} [options.options]  `mongoose.connect` options
    * @return {Promise.<string>}  URI of mongodb instance.
    */
-  connectDB({db, hostname, options}={db:'test', hostname:'localhost'}) {
-    new Promise((resolve, reject) => {
+  connectDB(hostname, db, options) {
+    db = db || 'test';
+    hostname = hostname || '127.0.0.1';
+    options = options || {}
+
+    return new Promise((resolve, reject) => {
       let uri = ['mongodb://', hostname, '/', db].join('');
       mongoose.connect(uri, options, err => {
         if (err) reject(err);
-        console.log('[mongoose] Connected to', uri);
-        resolve(uri);
+        else {
+          console.log('[mongoose] Connected to', uri);
+          resolve(uri);
+        }
+      });
+    });
+  }
+
+  disconnectDB() {
+    return new Promise((resolve, reject) => {
+      mongoose.disconnect(err => {
+        if (err) reject(err);
+        resolve('Disconnected database.');
       });
     });
   }
