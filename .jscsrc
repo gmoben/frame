@@ -1,0 +1,8 @@
+{
+  "preset": "airbnb",
+  "requireCurlyBraces": null,
+  "requirePaddingNewLinesAfterBlocks": null,
+  "validateQuoteMarks": null,
+  "esnext": true,
+  "verbose": true
+}
