@@ -1,0 +1,7 @@
+.notes
+node_modules
+.live-archive
+.DS_Store
+build
+.data
+docs
