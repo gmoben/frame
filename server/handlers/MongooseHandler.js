@@ -27,9 +27,9 @@ export default class MongooseHandler extends Handler {
   create(props) {
     return new Promise((resolve, reject) => {
       this.model.create(props, (err, result) => {
-          if (err) reject([err, 500]);
-          resolve([result, 201]);
-        });
+        if (err) reject([err, 500]);
+        resolve([result, 201]);
+      });
     });
   }
 
@@ -73,12 +73,12 @@ export default class MongooseHandler extends Handler {
     return new Promise((resolve, reject) => {
       if ('_id' in props) delete props._id;
       this.model.findById(id, result => {
-          if (!result) reject([new ModelError('Docid ' + id + ' not found'), 404]);
-          merge(result, props).save(err => {
-            if (err) reject([err, 500]);
-            resolve([result, 201]);
-          });
+        if (!result) reject([new ModelError('Docid ' + id + ' not found'), 404]);
+        merge(result, props).save(err => {
+          if (err) reject([err, 500]);
+          resolve([result, 201]);
         });
+      });
     });
   }
 

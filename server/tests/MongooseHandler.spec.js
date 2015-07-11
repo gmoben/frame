@@ -65,7 +65,10 @@ describe('MongooseHandler', () => {
       }).catch(done);
   });
 
-  it('returns promises for all instance methods');
+  // it('returns promises for all instance methods', done => {
+  //   console.log(Object.getOwnPropertyNames(albumHandler.__proto__));
+  //   done();
+  // });
 
   describe('#constructor()', () => {
     it('uses DEFAULT_ROUTES if none supplied', () => {

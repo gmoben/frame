@@ -98,8 +98,7 @@ describe('App', () => {
         .then(() => app.disconnectDB())
         .then((msg) => {
           console.log(msg); done();
-        })
-               .catch(done);
+        }).catch(done);
     });
 
     afterEach(done => {

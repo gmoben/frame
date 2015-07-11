@@ -39,7 +39,7 @@ export default class App {
    * @param  {string} [hostname=localhost]  Server hostname
    * @return {Promise.<Object>} {address, port}
    */
-  listen(port, hostname='localhost') {
+  listen(port, hostname='127.0.0.1') {
     return new Promise((resolve, reject) => {
       this.server.listen(port, hostname, err => {
         if (err) reject(err);
@@ -52,7 +52,7 @@ export default class App {
 
         this.connectDB(addr.address)
           .then(() => resolve(addr))
-          .catch(err => reject(err));
+          .catch(e => reject(e));
       });
     });
   }
@@ -83,7 +83,7 @@ export default class App {
   connectDB(hostname, db, options) {
     db = db || 'test';
     hostname = hostname || '127.0.0.1';
-    options = options || {}
+    options = options || {};
 
     return new Promise((resolve, reject) => {
       let uri = ['mongodb://', hostname, '/', db].join('');
