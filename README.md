@@ -1,4 +1,4 @@
-# Phrame
+# Phrame ![Build Status](https://travis-ci.org/gmoben/phrame.svg?branch=master)
 ## Overview
 ### Models
 Write ES6 classes instead of redundant `mongoose` configurations.
