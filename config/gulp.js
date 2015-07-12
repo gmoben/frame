@@ -26,7 +26,7 @@ gulp.task('build', 'Compile babel source.', ['clean'], () => {
 gulp.task('test', 'Run all tests.', ['test:server']);
 
 gulp.task('test:server', 'Run server tests.', () => {
-  gulp.src('server/**/*.spec.js')
+  gulp.src('lib/server/**/*.spec.js')
     .pipe(mocha({
       reporter: 'spec',
       compilers: 'js:babel/register'
