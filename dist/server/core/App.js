@@ -28,6 +28,10 @@ var _mongoose2 = _interopRequireDefault(_mongoose);
 
 var _lodash = require('lodash');
 
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
 var App = (function () {
   /**
    * Initalize express application and socket.io.
@@ -43,6 +47,8 @@ var App = (function () {
     this.models = models;
     this.config = config;
 
+    this.debug = (0, _debug2['default'])(this.constructor.name);
+
     /**
      * @member {express.Application} app
      * @member {http.Server} server
@@ -55,7 +61,7 @@ var App = (function () {
     this.config.express(this.app);
 
     this.io.on('connection', function (socket) {
-      console.log('[socket.io]', 'Client connected');
+      _this.debug('[socket.io]', 'Client connected');
       _this.socket = socket;
       var events = _this.config.socket ? _this.config.socket.events : undefined;
       _this.setSocket(_this.socket, events);
@@ -81,7 +87,7 @@ var App = (function () {
           if (err) reject(err);
           var addr = _this2.server.address();
           var uri = addr.address + ':' + addr.port;
-          console.log('[express]', 'Listening @ ', uri);
+          _this2.debug('[express]', 'Listening @ ', uri);
 
           // /** @member {socket.io-client.Manager} */
           // this.ioClient = SocketIOClient('ws://' + uri);
@@ -123,6 +129,8 @@ var App = (function () {
      * @return {Promise.<string>}  URI of mongodb instance.
      */
     value: function connectDB(hostname, db, options) {
+      var _this4 = this;
+
       db = db || 'test';
       hostname = hostname || '127.0.0.1';
       options = options || {};
@@ -131,7 +139,7 @@ var App = (function () {
         var uri = ['mongodb://', hostname, '/', db].join('');
         _mongoose2['default'].connect(uri, options, function (err) {
           if (err) reject(err);else {
-            console.log('[mongoose] Connected to', uri);
+            _this4.debug('[mongoose] Connected to', uri);
             resolve(uri);
           }
         });
@@ -140,10 +148,13 @@ var App = (function () {
   }, {
     key: 'disconnectDB',
     value: function disconnectDB() {
+      var _this5 = this;
+
       return new Promise(function (resolve, reject) {
         _mongoose2['default'].disconnect(function (err) {
           if (err) reject(err);
-          resolve('Disconnected database.');
+          _this5.debug('[mongoose]', 'Disconnected');
+          resolve();
         });
       });
     }
