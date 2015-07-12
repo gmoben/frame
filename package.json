@@ -1,6 +1,6 @@
 {
   "name": "phrame",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Web apps without the work.",
   "main": "dist/index.js",
   "files": [
