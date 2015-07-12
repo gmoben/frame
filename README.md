@@ -1,6 +1,11 @@
 # Phrame
-## Overview
-### Models
+
+**branch** | **status**
+---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+master     | [![Build Status](https://travis-ci.org/gmoben/phrame.svg?branch=master)](https://travis-ci.org/gmoben/phrame) [![Coverage Status](https://coveralls.io/repos/gmoben/phrame/badge.svg?branch=dev&service=github)](https://coveralls.io/github/gmoben/phrame?branch=master)
+dev        | [![Build Status](https://travis-ci.org/gmoben/phrame.svg?branch=dev)](https://travis-ci.org/gmoben/phrame) [![Coverage Status](https://coveralls.io/repos/gmoben/phrame/badge.svg?branch=dev&service=github)](https://coveralls.io/github/gmoben/phrame?branch=dev)
+
+## Models
 Write ES6 classes instead of redundant `mongoose` configurations.
 
 ```js
