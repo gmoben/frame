@@ -9,9 +9,7 @@ var _chai2 = _interopRequireDefault(_chai);
 
 // import socketIOClient from 'socket.io-client';
 
-var _serverCoreApp = require('server/core/App');
-
-var _serverCoreApp2 = _interopRequireDefault(_serverCoreApp);
+var _serverCore = require('server/core');
 
 var _fixtures = require('./fixtures');
 
@@ -25,7 +23,7 @@ describe('App', function () {
   var app = undefined;
 
   before(function () {
-    app = new _serverCoreApp2['default'](_fixtures.models, _fixtures.config);
+    app = new _serverCore.App(_fixtures.models, _fixtures.config);
   });
 
   after(function (done) {
@@ -112,9 +110,7 @@ describe('App', function () {
     beforeEach(function (done) {
       app.listen(PORT).then(function () {
         return app.disconnectDB();
-      }).then(function (msg) {
-        console.log(msg);done();
-      })['catch'](done);
+      }).then(done, done);
     });
 
     afterEach(function (done) {

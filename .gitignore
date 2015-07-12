@@ -6,3 +6,8 @@ node_modules
 docs
 !lib
 !dist
+!lib/**/*
+!dist/**/*
+dist/config/gulp.js
+dist/**/tests
+coverage
