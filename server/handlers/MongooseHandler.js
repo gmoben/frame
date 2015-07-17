@@ -27,6 +27,8 @@ var _serverConstants = require('server/constants');
 var _serverConstants2 = _interopRequireDefault(_serverConstants);
 
 var MongooseHandler = (function (_Handler) {
+  _inherits(MongooseHandler, _Handler);
+
   function MongooseHandler(model, routes) {
     _classCallCheck(this, MongooseHandler);
 
@@ -34,8 +36,6 @@ var MongooseHandler = (function (_Handler) {
     this._model = model; // Save a reference
     this.model = model.model; // Change for simplicity.
   }
-
-  _inherits(MongooseHandler, _Handler);
 
   _createClass(MongooseHandler, [{
     key: 'index',

@@ -10,13 +10,13 @@ import MongooseHandler from 'server/handlers/MongooseHandler';
 import Model from 'server/core/Model';
 
 /**
- * Build and return mongoose Schema.
+ * Build a `mongoose` Schema.
  * @param {object}         schemaDefinition   Schema definition.
  * @param {Array.<string>} [virtuals] Property names of virtual functions
  * @param {Object}         [toObject] Schema `doc.toObject` options
  * @return {mongoose.Schema}
  */
-function buildSchema(schemaDefinition, virtuals, toObject) {
+function SchemaFactory(schemaDefinition, virtuals, toObject) {
   let schema = new Schema(schemaDefinition);
 
   // Add mongoose-relationship path names
@@ -56,7 +56,7 @@ export default class MongooseModel extends Model {
    */
   constructor(schemaDefinition, {name, routes, virtuals, populate}) {
     // Schema must be defined before calling super
-    let schema = buildSchema(schemaDefinition, virtuals, populate || {getters: true});
+    let schema = SchemaFactory(schemaDefinition, virtuals, populate || {getters: true});
     super({name, routes});
     this.schemaDefinition = schemaDefinition;
     this.schema = schema;

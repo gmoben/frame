@@ -1,5 +1,5 @@
 import {isEqual, isFunction, includes} from 'lodash';
-import {ModelError} from 'server/errors';
+import {ModelError} from '../errors';
 
 /**
  * Server-side data model.

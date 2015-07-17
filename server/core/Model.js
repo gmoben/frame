@@ -10,7 +10,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _lodash = require('lodash');
 
-var _serverErrors = require('server/errors');
+var _errors = require('../errors');
 
 /**
  * Server-side data model.
@@ -31,7 +31,7 @@ var Model = (function () {
     _classCallCheck(this, Model);
 
     this.modelName = name || this.constructor.name;
-    if ((0, _lodash.isEqual)(this.modelName, 'Model')) throw new _serverErrors.ModelError('Must specify model name if not using a subclass');
+    if ((0, _lodash.isEqual)(this.modelName, 'Model')) throw new _errors.ModelError('Must specify model name if not using a subclass');
 
     if (HandlerClass) {
       this.setHandler(new HandlerClass(this, routes));

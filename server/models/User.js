@@ -23,6 +23,8 @@ var _crypto = require('crypto');
 var _crypto2 = _interopRequireDefault(_crypto);
 
 var User = (function (_MongooseModel) {
+  _inherits(User, _MongooseModel);
+
   function User() {
     _classCallCheck(this, User);
 
@@ -39,8 +41,6 @@ var User = (function (_MongooseModel) {
     };
     _get(Object.getPrototypeOf(User.prototype), 'constructor', this).call(this, schema, { virtuals: ['password', 'profile', 'token'] });
   }
-
-  _inherits(User, _MongooseModel);
 
   _createClass(User, [{
     key: 'authenticate',

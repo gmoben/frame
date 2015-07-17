@@ -41,13 +41,13 @@ var _serverCoreModel = require('server/core/Model');
 var _serverCoreModel2 = _interopRequireDefault(_serverCoreModel);
 
 /**
- * Build and return mongoose Schema.
+ * Build a `mongoose` Schema.
  * @param {object}         schemaDefinition   Schema definition.
  * @param {Array.<string>} [virtuals] Property names of virtual functions
  * @param {Object}         [toObject] Schema `doc.toObject` options
  * @return {mongoose.Schema}
  */
-function buildSchema(schemaDefinition, virtuals, toObject) {
+function SchemaFactory(schemaDefinition, virtuals, toObject) {
   var _this = this;
 
   var schema = new _mongoose.Schema(schemaDefinition);
@@ -76,6 +76,8 @@ function buildSchema(schemaDefinition, virtuals, toObject) {
  */
 
 var MongooseModel = (function (_Model) {
+  _inherits(MongooseModel, _Model);
+
   /**
    * @param  {Object}         schemaDefinition    `mongoose` schema definition.
    * @param  {Object}         options
@@ -96,15 +98,13 @@ var MongooseModel = (function (_Model) {
     _classCallCheck(this, MongooseModel);
 
     // Schema must be defined before calling super
-    var schema = buildSchema(schemaDefinition, virtuals, populate || { getters: true });
+    var schema = SchemaFactory(schemaDefinition, virtuals, populate || { getters: true });
     _get(Object.getPrototypeOf(MongooseModel.prototype), 'constructor', this).call(this, { name: name, routes: routes });
     this.schemaDefinition = schemaDefinition;
     this.schema = schema;
     this.setHandler(new _serverHandlersMongooseHandler2['default'](this, routes));
     this.router = this.handler.router;
   }
-
-  _inherits(MongooseModel, _Model);
 
   _createClass(MongooseModel, [{
     key: 'addSocket',

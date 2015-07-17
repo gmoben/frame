@@ -3,8 +3,7 @@ import path from 'path';
 
 let constants = {
   ROOT: path.join(__dirname, '..'),
-  PARENT: path.join(__dirname, '../..'),
-  BUILD_DIR: 'dist'
+  PARENT: path.join(__dirname, '../..')
 };
 
 let dir = require('require-dir')('.', {

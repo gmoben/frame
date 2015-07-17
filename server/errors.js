@@ -11,6 +11,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
 var ModelError = (function (_Error) {
+  _inherits(ModelError, _Error);
+
   function ModelError(msg) {
     _classCallCheck(this, ModelError);
 
@@ -19,14 +21,14 @@ var ModelError = (function (_Error) {
     this.name = 'ModelError';
   }
 
-  _inherits(ModelError, _Error);
-
   return ModelError;
 })(Error);
 
 exports.ModelError = ModelError;
 
 var AppError = (function (_Error2) {
+  _inherits(AppError, _Error2);
+
   function AppError(msg) {
     _classCallCheck(this, AppError);
 
@@ -34,8 +36,6 @@ var AppError = (function (_Error2) {
     this.message = msg;
     this.name = 'AppError';
   }
-
-  _inherits(AppError, _Error2);
 
   return AppError;
 })(Error);

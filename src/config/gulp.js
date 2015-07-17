@@ -13,7 +13,7 @@ import config from 'config';
 // Add `gulp help` and inline descriptions
 gulpHelp(gulp);
 
-function build(src, dest=config.BUILD_DIR) {
+function build(src, dest='') {
   return gulp.src(src)
     .pipe(babel({stage: 0}))
     .pipe(gulp.dest(dest));
@@ -36,23 +36,23 @@ function test(src, reporter='spec', istanbul=true) {
 }
 
 gulp.task('clean', 'Clean build directory.', () => {
-  return del(config.BUILD_DIR, {force: true});
+  return del('./server', {force: true});
 });
 
 gulp.task('build', 'Compile source.', ['clean'], () => {
-  return build('lib/**/*.js');
+  return build('src/server/**/*.js', 'server');
 });
 
 gulp.task('build:tests', 'Compile tests.', () => {
-  return build('lib/**/tests/**');
+  return build('src/**/tests/**');
 });
 
-gulp.task('test', 'Default: test:lib only', ['test:lib']);
+gulp.task('test', 'Default: test:src only', ['test:src']);
 
-gulp.task('test:all', 'Run all tests.', ['test:lib', 'test:build']);
+gulp.task('test:all', 'Run all tests.', ['test:src', 'test:build']);
 
-gulp.task('test:lib', 'Run uncompiled tests on uncompiled code.', () => {
-  return test('lib/server/**/*.spec.js');
+gulp.task('test:src', 'Run uncompiled tests on uncompiled code.', () => {
+  return test('src/server/**/*.spec.js');
 });
 
 gulp.task('test:build', 'Run compiled tests on compiled code.', ['build:tests'], () => {
@@ -63,7 +63,7 @@ gulp.task('mongo', 'Launch mongodb.', () => {
   return gulp.src('')
     .pipe(shell([
       'mongod',
-      '--dbpath=' + path.join(config.ROOT, '.data/db')
+      '--dbpath=' + path.join(config.PARENT, '.data/db')
     ].join(' '), {
       cwd: config.ROOT
     }));

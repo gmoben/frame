@@ -23,7 +23,7 @@ class User extends MongooseModel {
    *
    * @return {String}
    */
-  get password() { return this._password; }
+  get password() {return this._password; }
   set password(password) {
     this._password = password;
     this.salt = crypto.randomBytes(16).toString('base64');
@@ -34,13 +34,13 @@ class User extends MongooseModel {
    * Profile information.
    * @return {object} {role, name}
    */
-  get profile() { return {name: this.name, role: this.role}; }
+  get profile() {return {name: this.name, role: this.role}; }
 
   /**
    * Auth token.
    * @return {object} {_id, role}
    */
-  get token() { return {_id: this._id, role: this.role}; }
+  get token() {return {_id: this._id, role: this.role}; }
 
   /**
    * Hash provided string and compare with hashed password.
