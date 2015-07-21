@@ -5,9 +5,9 @@ import relationship from 'mongoose-relationship';
 import {forEach, merge, transform,
         isEmpty, isString, mapValues} from 'lodash';
 
-import ModelError from 'server/errors';
-import MongooseHandler from 'server/handlers/MongooseHandler';
-import Model from 'server/core/Model';
+import {ModelError} from '../errors';
+import {MongooseHandler} from '../handlers';
+import {Model} from '../core';
 
 /**
  * Build a `mongoose` Schema.
@@ -16,7 +16,7 @@ import Model from 'server/core/Model';
  * @param {Object}         [toObject] Schema `doc.toObject` options
  * @return {mongoose.Schema}
  */
-function SchemaFactory(schemaDefinition, virtuals, toObject) {
+function SchemaFactory(schemaDefinition, toObject) {
   let schema = new Schema(schemaDefinition);
 
   // Add mongoose-relationship path names
@@ -24,16 +24,6 @@ function SchemaFactory(schemaDefinition, virtuals, toObject) {
     if (v.hasOwnProperty('childPath')) acc.push(k);
   }, []);
   if (rpn) schema.plugin(relationship, {relationshipPathName: rpn});
-
-  // Assign virtuals if they exist on the class
-  if (virtuals) virtuals.forEach(name => {
-    if (!(name in this))
-      throw new ModelError('Virtual function ' + name + 'does not exist.');
-    forEach(Object.getOwnPropertyDescriptor(this, name), (val, key) => {
-      if (['get', 'set'].includes(key))
-        schema.virtual(name)[key](val);
-    });
-  });
 
   if (toObject) schema.set('toObject', toObject);
 
@@ -54,14 +44,28 @@ export default class MongooseModel extends Model {
    *                                              Default: `{getters: true}`
    * @param  {Object}         [handler]           Overrides default request handler.
    */
-  constructor(schemaDefinition, {name, routes, virtuals, populate}) {
+  constructor(schemaDefinition, {name, routes, virtuals, populate}={}) {
     // Schema must be defined before calling super
-    let schema = SchemaFactory(schemaDefinition, virtuals, populate || {getters: true});
+    let schema = SchemaFactory(schemaDefinition, populate || {getters: true});
     super({name, routes});
     this.schemaDefinition = schemaDefinition;
     this.schema = schema;
+    this._setVirtuals(virtuals);
     this.setHandler(new MongooseHandler(this, routes));
     this.router = this.handler.router;
+  }
+
+  _setVirtuals(virtuals) {
+    // Assign virtuals if they exist on the class
+    if (virtuals) virtuals.forEach(name => {
+      if (!(name in this))
+        throw new ModelError('Virtual function ' + name + 'does not exist.');
+      forEach(Object.getOwnPropertyDescriptor(this, name), (val, key) => {
+        if (['get', 'set'].includes(key))
+          schema.virtual(name)[key](val);
+      });
+    });
+
   }
 
   /**

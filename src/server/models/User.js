@@ -1,4 +1,4 @@
-import MongooseModel from 'server/models/MongooseModel';
+import MongooseModel from './MongooseModel';
 import crypto from 'crypto';
 
 class User extends MongooseModel {

@@ -42,6 +42,7 @@
     "del": "^1.2.0",
     "doxx": "^1.4.0",
     "eslint": "^1.0.0-rc-1",
+    "eslint-plugin-react": "^2.7.1",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.1.0",
     "gulp-help": "^1.6.0",

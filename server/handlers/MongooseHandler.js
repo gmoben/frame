@@ -14,17 +14,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-var _serverCoreHandler = require('server/core/Handler');
+var _core = require('../core');
 
-var _serverCoreHandler2 = _interopRequireDefault(_serverCoreHandler);
-
-var _serverErrors = require('server/errors');
+var _errors = require('../errors');
 
 var _lodash = require('lodash');
 
-var _serverConstants = require('server/constants');
+var _constants = require('../constants');
 
-var _serverConstants2 = _interopRequireDefault(_serverConstants);
+var _constants2 = _interopRequireDefault(_constants);
 
 var MongooseHandler = (function (_Handler) {
   _inherits(MongooseHandler, _Handler);
@@ -32,7 +30,7 @@ var MongooseHandler = (function (_Handler) {
   function MongooseHandler(model, routes) {
     _classCallCheck(this, MongooseHandler);
 
-    _get(Object.getPrototypeOf(MongooseHandler.prototype), 'constructor', this).call(this, model, routes || _serverConstants2['default']);
+    _get(Object.getPrototypeOf(MongooseHandler.prototype), 'constructor', this).call(this, model, routes || _constants2['default']);
     this._model = model; // Save a reference
     this.model = model.model; // Change for simplicity.
   }
@@ -81,12 +79,12 @@ var MongooseHandler = (function (_Handler) {
       return new Promise(function (resolve, reject) {
         // Reject if property not defined in schema defintion
         (0, _lodash.forEach)(props, function (v, prop) {
-          if (!(0, _lodash.has)(_this2._model.schemaDefinition, prop)) reject([new _serverErrors.ModelError('Property ' + prop + ' does not exist on model'), 404]);
+          if (!(0, _lodash.has)(_this2._model.schemaDefinition, prop)) reject([new _errors.ModelError('Property ' + prop + ' does not exist on model'), 404]);
         });
 
         _this2.model.find(props, function (err, result) {
           if (err) reject([err, 500]);
-          if (!result) reject([new _serverErrors.ModelError('Undefined result'), 404]);
+          if (!result) reject([new _errors.ModelError('Undefined result'), 404]);
           resolve([result, 200]);
         });
       });
@@ -117,7 +115,7 @@ var MongooseHandler = (function (_Handler) {
       return new Promise(function (resolve, reject) {
         if ('_id' in props) delete props._id;
         _this3.model.findById(id, function (result) {
-          if (!result) reject([new _serverErrors.ModelError('Docid ' + id + ' not found'), 404]);
+          if (!result) reject([new _errors.ModelError('Docid ' + id + ' not found'), 404]);
           (0, _lodash.merge)(result, props).save(function (err) {
             if (err) reject([err, 500]);
             resolve([result, 201]);
@@ -139,7 +137,7 @@ var MongooseHandler = (function (_Handler) {
       return new Promise(function (resolve, reject) {
         _this4.model.findById(id).exec().then(function (err, result) {
           if (err) reject([err, 500]);
-          if (!result) reject([new _serverErrors.ModelError('Docid ' + id + ' not found.'), 404]);
+          if (!result) reject([new _errors.ModelError('Docid ' + id + ' not found.'), 404]);
           result.remove(function (err2) {
             if (err2) reject([err2, 500]);
             resolve([undefined, 204]);
@@ -150,7 +148,7 @@ var MongooseHandler = (function (_Handler) {
   }]);
 
   return MongooseHandler;
-})(_serverCoreHandler2['default']);
+})(_core.Handler);
 
 exports['default'] = MongooseHandler;
 module.exports = exports['default'];

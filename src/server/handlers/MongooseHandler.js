@@ -1,8 +1,8 @@
-import Handler from 'server/core/Handler';
-import {ModelError} from 'server/errors';
+import {Handler} from '../core';
+import {ModelError} from '../errors';
 import {merge, has, forEach} from 'lodash';
 
-import DEFAULT_ROUTES from 'server/constants';
+import DEFAULT_ROUTES from '../constants';
 
 export default class MongooseHandler extends Handler {
   constructor(model, routes) {

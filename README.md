@@ -9,7 +9,7 @@ dev        | [![Build Status](https://travis-ci.org/gmoben/phrame.svg?branch=dev
 Write ES6 classes instead of redundant `mongoose` configurations.
 
 ```js
-import {Model} from 'frame/server/core';
+import {Model} from 'phrame/server/core';
 
 class User extends Model {
   constructor() {
@@ -31,7 +31,7 @@ export default new User();
 Or instantiate a `Model` directly.
 
 ```js
-import {ref} from 'frame/server/utils'
+import {ref} from 'phrame/server/utils'
 
 var Album = new Model({
   name: 'Album',
@@ -47,8 +47,8 @@ let album = Album.create({title: 'Kittens'});
 ['gizmo.jpg', 'luna.png'].forEach(url => Photo.create({url, album}));
 ```
 
-**Important**: Aside from the base configuration you provide, Frame handles all `mongoose` related details for you. If your application requires a `mongoose` reference, **DO NOT** install it as a dependency for your project as node will instantiate them separately. Instead, `import` it from `frame` directly.
+**Important**: Aside from the base configuration you provide, Frame handles all `mongoose` related details for you. If your application requires a `mongoose` reference, **DO NOT** install it as a dependency for your project as node will instantiate them separately. Instead, `import` it from `phrame` directly.
 
 ```js
-import mongoose from 'frame';
+import mongoose from 'phrame';
 ```

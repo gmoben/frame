@@ -10,7 +10,7 @@ var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = 
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -28,17 +28,11 @@ var _mongooseRelationship2 = _interopRequireDefault(_mongooseRelationship);
 
 var _lodash = require('lodash');
 
-var _serverErrors = require('server/errors');
+var _errors = require('../errors');
 
-var _serverErrors2 = _interopRequireDefault(_serverErrors);
+var _handlers = require('../handlers');
 
-var _serverHandlersMongooseHandler = require('server/handlers/MongooseHandler');
-
-var _serverHandlersMongooseHandler2 = _interopRequireDefault(_serverHandlersMongooseHandler);
-
-var _serverCoreModel = require('server/core/Model');
-
-var _serverCoreModel2 = _interopRequireDefault(_serverCoreModel);
+var _core = require('../core');
 
 /**
  * Build a `mongoose` Schema.
@@ -47,9 +41,7 @@ var _serverCoreModel2 = _interopRequireDefault(_serverCoreModel);
  * @param {Object}         [toObject] Schema `doc.toObject` options
  * @return {mongoose.Schema}
  */
-function SchemaFactory(schemaDefinition, virtuals, toObject) {
-  var _this = this;
-
+function SchemaFactory(schemaDefinition, toObject) {
   var schema = new _mongoose.Schema(schemaDefinition);
 
   // Add mongoose-relationship path names
@@ -57,14 +49,6 @@ function SchemaFactory(schemaDefinition, virtuals, toObject) {
     if (v.hasOwnProperty('childPath')) acc.push(k);
   }, []);
   if (rpn) schema.plugin(_mongooseRelationship2['default'], { relationshipPathName: rpn });
-
-  // Assign virtuals if they exist on the class
-  if (virtuals) virtuals.forEach(function (name) {
-    if (!(name in _this)) throw new _serverErrors2['default']('Virtual function ' + name + 'does not exist.');
-    (0, _lodash.forEach)(Object.getOwnPropertyDescriptor(_this, name), function (val, key) {
-      if (['get', 'set'].includes(key)) schema.virtual(name)[key](val);
-    });
-  });
 
   if (toObject) schema.set('toObject', toObject);
 
@@ -89,7 +73,9 @@ var MongooseModel = (function (_Model) {
    * @param  {Object}         [handler]           Overrides default request handler.
    */
 
-  function MongooseModel(schemaDefinition, _ref) {
+  function MongooseModel(schemaDefinition) {
+    var _ref = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
     var name = _ref.name;
     var routes = _ref.routes;
     var virtuals = _ref.virtuals;
@@ -98,15 +84,29 @@ var MongooseModel = (function (_Model) {
     _classCallCheck(this, MongooseModel);
 
     // Schema must be defined before calling super
-    var schema = SchemaFactory(schemaDefinition, virtuals, populate || { getters: true });
+    var schema = SchemaFactory(schemaDefinition, populate || { getters: true });
     _get(Object.getPrototypeOf(MongooseModel.prototype), 'constructor', this).call(this, { name: name, routes: routes });
     this.schemaDefinition = schemaDefinition;
     this.schema = schema;
-    this.setHandler(new _serverHandlersMongooseHandler2['default'](this, routes));
+    this._setVirtuals(virtuals);
+    this.setHandler(new _handlers.MongooseHandler(this, routes));
     this.router = this.handler.router;
   }
 
   _createClass(MongooseModel, [{
+    key: '_setVirtuals',
+    value: function _setVirtuals(virtuals) {
+      var _this = this;
+
+      // Assign virtuals if they exist on the class
+      if (virtuals) virtuals.forEach(function (name) {
+        if (!(name in _this)) throw new _errors.ModelError('Virtual function ' + name + 'does not exist.');
+        (0, _lodash.forEach)(Object.getOwnPropertyDescriptor(_this, name), function (val, key) {
+          if (['get', 'set'].includes(key)) schema.virtual(name)[key](val);
+        });
+      });
+    }
+  }, {
     key: 'addSocket',
 
     /**
@@ -174,7 +174,7 @@ var MongooseModel = (function (_Model) {
   }]);
 
   return MongooseModel;
-})(_serverCoreModel2['default']);
+})(_core.Model);
 
 exports['default'] = MongooseModel;
 module.exports = exports['default'];
