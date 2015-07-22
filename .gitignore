@@ -11,3 +11,4 @@ docs
 dist/config/gulp.js
 dist/**/tests
 coverage
+*.js.map

@@ -7,15 +7,18 @@ import gulpHelp from 'gulp-help';
 import babel from 'gulp-babel';
 import shell from 'gulp-shell';
 import mocha from 'gulp-spawn-mocha';
+import sourcemaps from 'gulp-sourcemaps';
 
 import config from 'config';
 
 // Add `gulp help` and inline descriptions
 gulpHelp(gulp);
 
-function build(src, dest='') {
+function build(src, dest='', options) {
   return gulp.src(src)
+    .pipe(sourcemaps.init())
     .pipe(babel({stage: 0}))
+    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(dest));
 }
 
@@ -39,8 +42,14 @@ gulp.task('clean', 'Clean build directory.', () => {
   return del('./server', {force: true});
 });
 
-gulp.task('build', 'Compile source.', ['clean'], () => {
+gulp.task('build', 'Compile source.', () => {
   return build('src/server/**/*.js', 'server');
+});
+
+gulp.task('build:watch', 'Watch and rebuild on source changes.', ['build'], () => {
+  gulp.watch('src/server/**/*.js', ['build'])
+    .on('change', event => console.log('File', event.path, event.type))
+    .on('error', err => console.log('Compilation error', err))
 });
 
 gulp.task('build:tests', 'Compile tests.', () => {

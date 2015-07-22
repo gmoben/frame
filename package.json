@@ -47,7 +47,9 @@
     "gulp-babel": "^5.1.0",
     "gulp-help": "^1.6.0",
     "gulp-shell": "^0.4.2",
+    "gulp-sourcemaps": "^1.5.2",
     "gulp-spawn-mocha": "^2.2.1",
+    "gulp-watch": "^4.3.3",
     "mocha": "^2.2.5",
     "should": "^7.0.1"
   }
