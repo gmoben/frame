@@ -28,6 +28,7 @@
     "mongoose": "^4.0.6",
     "mongoose-q": "0.0.17",
     "mongoose-relationship": "^0.1.4",
+    "pluralize": "^1.1.2",
     "require-dir": "^0.3.0",
     "socket.io": "^1.3.5",
     "socket.io-client": "^1.3.5"

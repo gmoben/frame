@@ -2,8 +2,9 @@ import express from 'express';
 import http from 'http';
 import SocketIO from 'socket.io';
 import mongoose from 'mongoose';
-import {values, forEach} from 'lodash';
+import {values, forEach, isEqual} from 'lodash';
 import debug from 'debug';
+import pluralize from 'pluralize';
 
 export default class App {
   /**
@@ -28,9 +29,11 @@ export default class App {
 
     this.config.express(this.app);
 
-    //Use generated routers from models
+    // Use singular and pluralized endpoints
     forEach(this.models, ({modelName, router}) => {
-      this.app.use('/api/' + modelName.toLowerCase(), router);
+      let names = [modelName.toLowerCase()];
+      if (!isEqual(pluralize(names[0]))) names.push(pluralize(names[0]));
+      names.map(endpoint => this.app.use('/api/' + endpoint, router));
     });
 
     this.io.on('connection', socket => {

@@ -32,6 +32,10 @@ var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
 
+var _pluralize = require('pluralize');
+
+var _pluralize2 = _interopRequireDefault(_pluralize);
+
 var App = (function () {
   /**
    * Initalize express application and socket.io.
@@ -60,12 +64,16 @@ var App = (function () {
 
     this.config.express(this.app);
 
-    //Use generated routers from models
+    // Use singular and pluralized endpoints
     (0, _lodash.forEach)(this.models, function (_ref) {
       var modelName = _ref.modelName;
       var router = _ref.router;
 
-      _this.app.use('/api/' + modelName.toLowerCase(), router);
+      var names = [modelName.toLowerCase()];
+      if (!(0, _lodash.isEqual)((0, _pluralize2['default'])(names[0]))) names.push((0, _pluralize2['default'])(names[0]));
+      names.map(function (endpoint) {
+        return _this.app.use('/api/' + endpoint, router);
+      });
     });
 
     this.io.on('connection', function (socket) {
