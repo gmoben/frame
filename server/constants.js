@@ -13,3 +13,4 @@ var DEFAULT_ROUTES = [['/', {
   'delete': ['delete', 'params.id']
 }]];
 exports.DEFAULT_ROUTES = DEFAULT_ROUTES;
+//# sourceMappingURL=constants.js.map

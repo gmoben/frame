@@ -1,8 +1,8 @@
 import chai, {expect} from 'chai';
 chai.should();
 
-import Handler from 'server/core/Handler';
-import DEFAULT_ROUTES from 'server/constants';
+import Handler from '../core/Handler';
+import DEFAULT_ROUTES from '../constants';
 
 describe('Handler', () => {
   let handler = new Handler(DEFAULT_ROUTES);

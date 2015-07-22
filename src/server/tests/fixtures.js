@@ -1,5 +1,5 @@
-import MongooseModel from 'server/models/MongooseModel';
-import {ref} from 'server/utils';
+import MongooseModel from '../models/MongooseModel';
+import {ref} from '../utils';
 
 let schemas = {
   'Album': [{title: String, photos: [ref('Photo')]}],

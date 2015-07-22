@@ -10,6 +10,8 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _express = require('express');
@@ -18,27 +20,51 @@ var _express2 = _interopRequireDefault(_express);
 
 var _lodash = require('lodash');
 
+var debug = require('debug')('phrame:handler');
+
 /**
  * Build an `express.Router`.
  * @param {Array[]} routeDefs Route definitions.
  * @return {express.Router} `express.Router` instance
  */
-function createRouter(routeDefs) {
-  var _this = this;
-
+function createRouter(handler, routeDefs) {
   var router = _express2['default'].Router();
-  new Map(routeDefs).forEach(function (def) {
-    var _def = _slicedToArray(def, 2);
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
 
-    var routes = _def[0];
-    var methods = _def[1];
+  try {
+    var _loop = function () {
+      var _step$value = _slicedToArray(_step.value, 2);
 
-    (0, _lodash.flatten)([routes]).forEach(function (route) {
-      (0, _lodash.forEach)(methods, function (args, restMethod) {
-        router[restMethod](route, _this.handler.handle.apply(args));
+      var routes = _step$value[0];
+      var methods = _step$value[1];
+
+      (0, _lodash.flatten)([routes]).forEach(function (route) {
+        (0, _lodash.forEach)(methods, function (args, restMethod) {
+          router[restMethod](route, handler.handle.apply(handler, _toConsumableArray(args)));
+        });
       });
-    });
-  });
+    };
+
+    for (var _iterator = new Map(routeDefs)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      _loop();
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator['return']) {
+        _iterator['return']();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
   return router;
 }
 
@@ -48,7 +74,7 @@ var Handler = (function () {
 
     this.model = model;
     this.routes = routes;
-    this.router = createRouter(routes);
+    this.router = createRouter(this, routes);
   }
 
   _createClass(Handler, [{
@@ -60,19 +86,34 @@ var Handler = (function () {
      * @return {function}      Request handler.
      * @private
      */
-    value: function handle(method, args) {
-      var _this2 = this;
+    value: function handle(method) {
+      var _this = this;
 
+      var args = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+      debug('Building handler for ' + method);
       return function (req, res) {
-        if (!_this2[method]) throw new Error('Unknown method', method);
-        args = args.map(function (arg) {
+        debug('Handling ' + method, args);
+        if (!_this[method]) throw new Error('Unknown method', method);
+        args = (0, _lodash.flatten)([args]).map(function (arg) {
           return (0, _lodash.property)(arg)(req);
         });
-        _this2[method].apply(args).then(function (result, code) {
-          if (result) return res.json(code, result);
-          return res.send(code, result);
-        })['catch'](function (err, code) {
-          return res.send(code, err);
+        _this[method](args).then(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2);
+
+          var result = _ref2[0];
+          var code = _ref2[1];
+
+          if (result) return res.status(code).json(result);
+          return res.status(code).send(result);
+        })['catch'](function (_ref3) {
+          var _ref32 = _slicedToArray(_ref3, 2);
+
+          var err = _ref32[0];
+          var code = _ref32[1];
+
+          debug('ERROR ' + err);
+          res.status(code).send(err.name + ': ' + err.message);
         });
       };
     }
@@ -83,3 +124,4 @@ var Handler = (function () {
 
 exports['default'] = Handler;
 module.exports = exports['default'];
+//# sourceMappingURL=../core/Handler.js.map

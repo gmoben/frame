@@ -9,7 +9,7 @@ var _chai2 = _interopRequireDefault(_chai);
 
 // import socketIOClient from 'socket.io-client';
 
-var _serverCore = require('server/core');
+var _core = require('../core');
 
 var _fixtures = require('./fixtures');
 
@@ -23,7 +23,7 @@ describe('App', function () {
   var app = undefined;
 
   before(function () {
-    app = new _serverCore.App(_fixtures.models, _fixtures.config);
+    app = new _core.App(_fixtures.models, _fixtures.config);
   });
 
   after(function (done) {
@@ -154,3 +154,4 @@ describe('App', function () {
     it('adds a listener socket to all app.models');
   });
 });
+//# sourceMappingURL=../tests/App.spec.js.map

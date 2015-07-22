@@ -4,3 +4,4 @@ module.exports = require('require-dir')('.', {
   recurse: true,
   camelcase: true
 });
+//# sourceMappingURL=../core/index.js.map

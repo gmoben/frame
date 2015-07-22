@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import SocketIO from 'socket.io';
 import mongoose from 'mongoose';
-import {values} from 'lodash';
+import {values, forEach} from 'lodash';
 import debug from 'debug';
 
 export default class App {
@@ -27,6 +27,11 @@ export default class App {
     this.io = SocketIO(this.server);
 
     this.config.express(this.app);
+
+    //Use generated routers from models
+    forEach(this.models, ({modelName, router}) => {
+      this.app.use('/api/' + modelName.toLowerCase(), router);
+    });
 
     this.io.on('connection', socket => {
       this.debug('[socket.io]', 'Client connected');

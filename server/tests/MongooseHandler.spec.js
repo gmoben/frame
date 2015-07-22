@@ -13,21 +13,19 @@ var _chai2 = _interopRequireDefault(_chai);
 
 var _lodash = require('lodash');
 
-var _serverCoreApp = require('server/core/App');
+var _coreApp = require('../core/App');
 
-var _serverCoreApp2 = _interopRequireDefault(_serverCoreApp);
+var _coreApp2 = _interopRequireDefault(_coreApp);
 
-var _serverHandlersMongooseHandler = require('server/handlers/MongooseHandler');
+var _handlersMongooseHandler = require('../handlers/MongooseHandler');
 
-var _serverHandlersMongooseHandler2 = _interopRequireDefault(_serverHandlersMongooseHandler);
+var _handlersMongooseHandler2 = _interopRequireDefault(_handlersMongooseHandler);
 
-var _serverErrors = require('server/errors');
+var _errors = require('../errors');
 
 var _fixtures = require('./fixtures');
 
-var _serverConstants = require('server/constants');
-
-var _serverConstants2 = _interopRequireDefault(_serverConstants);
+var _constants = require('../constants');
 
 _chai2['default'].should();
 
@@ -35,9 +33,9 @@ var HOSTNAME = '127.0.0.1';
 var DB = 'test';
 
 describe('MongooseHandler', function () {
-  var app = new _serverCoreApp2['default']({}, _fixtures.config);
-  var albumHandler = new _serverHandlersMongooseHandler2['default'](_fixtures.models.Album);
-  var photoHandler = new _serverHandlersMongooseHandler2['default'](_fixtures.models.Photo);
+  var app = new _coreApp2['default']({}, _fixtures.config);
+  var albumHandler = new _handlersMongooseHandler2['default'](_fixtures.models.Album);
+  var photoHandler = new _handlersMongooseHandler2['default'](_fixtures.models.Photo);
 
   before(function (done) {
     app.connectDB(HOSTNAME, DB).then(function () {
@@ -103,8 +101,8 @@ describe('MongooseHandler', function () {
 
   describe('#constructor()', function () {
     it('uses DEFAULT_ROUTES if none supplied', function () {
-      var h2 = new _serverHandlersMongooseHandler2['default'](_fixtures.models.Album);
-      (0, _chai.expect)(h2.routes).to.equal(_serverConstants2['default']);
+      var h2 = new _handlersMongooseHandler2['default'](_fixtures.models.Album);
+      (0, _chai.expect)(h2.routes).to.equal(_constants.DEFAULT_ROUTES);
     });
   });
 
@@ -289,7 +287,7 @@ describe('MongooseHandler', function () {
         var err = _ref112[0];
         var code = _ref112[1];
 
-        (0, _chai.expect)(err).to.be.an['instanceof'](_serverErrors.ModelError);
+        (0, _chai.expect)(err).to.be.an['instanceof'](_errors.ModelError);
         (0, _chai.expect)(code).to.equal(404);
         done();
       });
@@ -310,3 +308,4 @@ describe('MongooseHandler', function () {
     it('throws if not found');
   });
 });
+//# sourceMappingURL=../tests/MongooseHandler.spec.js.map

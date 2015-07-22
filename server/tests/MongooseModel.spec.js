@@ -22,3 +22,4 @@ describe('MongooseModel', function () {
     it('adds a socketio instance as a listener');
   });
 });
+//# sourceMappingURL=../tests/MongooseModel.spec.js.map

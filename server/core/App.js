@@ -60,6 +60,14 @@ var App = (function () {
 
     this.config.express(this.app);
 
+    //Use generated routers from models
+    (0, _lodash.forEach)(this.models, function (_ref) {
+      var modelName = _ref.modelName;
+      var router = _ref.router;
+
+      _this.app.use('/api/' + modelName.toLowerCase(), router);
+    });
+
     this.io.on('connection', function (socket) {
       _this.debug('[socket.io]', 'Client connected');
       _this.socket = socket;
@@ -178,3 +186,4 @@ var App = (function () {
 
 exports['default'] = App;
 module.exports = exports['default'];
+//# sourceMappingURL=../core/App.js.map

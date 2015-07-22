@@ -2,11 +2,11 @@
 import chai, {expect} from 'chai';
 chai.should();
 
-import Model from 'server/core/Model';
-import MongooseHandler from 'server/handlers/MongooseHandler';
-import {ModelError} from 'server/errors';
+import Model from '../core/Model';
+import MongooseHandler from '../handlers/MongooseHandler';
+import {ModelError} from '../errors';
 
-import DEFAULT_ROUTES from 'server/constants';
+import DEFAULT_ROUTES from '../constants';
 
 const MODEL_NAME = 'ModelExample';
 const HANDLER = MongooseHandler;

@@ -6,18 +6,18 @@ var _chai = require('chai');
 
 var _chai2 = _interopRequireDefault(_chai);
 
-var _serverCoreHandler = require('server/core/Handler');
+var _coreHandler = require('../core/Handler');
 
-var _serverCoreHandler2 = _interopRequireDefault(_serverCoreHandler);
+var _coreHandler2 = _interopRequireDefault(_coreHandler);
 
-var _serverConstants = require('server/constants');
+var _constants = require('../constants');
 
-var _serverConstants2 = _interopRequireDefault(_serverConstants);
+var _constants2 = _interopRequireDefault(_constants);
 
 _chai2['default'].should();
 
 describe('Handler', function () {
-  var handler = new _serverCoreHandler2['default'](_serverConstants2['default']);
+  var handler = new _coreHandler2['default'](_constants2['default']);
   handler.testFunc = function () {
     return 'Hi!';
   };
@@ -35,3 +35,4 @@ describe('Handler', function () {
     });
   });
 });
+//# sourceMappingURL=../tests/Handler.spec.js.map

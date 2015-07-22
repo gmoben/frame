@@ -68,3 +68,4 @@ var Model = (function () {
 
 exports['default'] = Model;
 module.exports = exports['default'];
+//# sourceMappingURL=../core/Model.js.map

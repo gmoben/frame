@@ -4,12 +4,12 @@ chai.should();
 
 import {keys} from 'lodash';
 
-import App from 'server/core/App';
-import MongooseHandler from 'server/handlers/MongooseHandler';
-import {ModelError} from 'server/errors';
+import App from '../core/App';
+import MongooseHandler from '../handlers/MongooseHandler';
+import {ModelError} from '../errors';
 import {models, config} from './fixtures';
 
-import DEFAULT_ROUTES from 'server/constants';
+import {DEFAULT_ROUTES} from '../constants';
 
 const HOSTNAME = '127.0.0.1';
 const DB = 'test';

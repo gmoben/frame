@@ -114,3 +114,4 @@ var User = (function (_MongooseModel) {
 
 exports['default'] = new User();
 module.exports = exports['default'];
+//# sourceMappingURL=../models/User.js.map

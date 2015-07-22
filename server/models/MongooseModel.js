@@ -178,3 +178,4 @@ var MongooseModel = (function (_Model) {
 
 exports['default'] = MongooseModel;
 module.exports = exports['default'];
+//# sourceMappingURL=../models/MongooseModel.js.map

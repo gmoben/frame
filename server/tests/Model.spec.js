@@ -6,30 +6,30 @@ var _chai = require('chai');
 
 var _chai2 = _interopRequireDefault(_chai);
 
-var _serverCoreModel = require('server/core/Model');
+var _coreModel = require('../core/Model');
 
-var _serverCoreModel2 = _interopRequireDefault(_serverCoreModel);
+var _coreModel2 = _interopRequireDefault(_coreModel);
 
-var _serverHandlersMongooseHandler = require('server/handlers/MongooseHandler');
+var _handlersMongooseHandler = require('../handlers/MongooseHandler');
 
-var _serverHandlersMongooseHandler2 = _interopRequireDefault(_serverHandlersMongooseHandler);
+var _handlersMongooseHandler2 = _interopRequireDefault(_handlersMongooseHandler);
 
-var _serverErrors = require('server/errors');
+var _errors = require('../errors');
 
-var _serverConstants = require('server/constants');
+var _constants = require('../constants');
 
-var _serverConstants2 = _interopRequireDefault(_serverConstants);
+var _constants2 = _interopRequireDefault(_constants);
 
 _chai2['default'].should();
 
 var MODEL_NAME = 'ModelExample';
-var HANDLER = _serverHandlersMongooseHandler2['default'];
+var HANDLER = _handlersMongooseHandler2['default'];
 
 describe('Model', function () {
   describe('#constructor()', function () {
-    var model = new _serverCoreModel2['default']({
+    var model = new _coreModel2['default']({
       name: MODEL_NAME,
-      routes: _serverConstants2['default']
+      routes: _constants2['default']
     }, HANDLER);
 
     it('requires a model name if not a subclass', function () {
@@ -37,10 +37,10 @@ describe('Model', function () {
 
       try {
         /*eslint-disable no-new*/
-        new _serverCoreModel2['default']({ routes: _serverConstants2['default'] }, HANDLER);
+        new _coreModel2['default']({ routes: _constants2['default'] }, HANDLER);
         /*eslint-enable no-new*/
       } catch (err) {
-        (0, _chai.expect)(err).to.be.an.instanceOf(_serverErrors.ModelError);
+        (0, _chai.expect)(err).to.be.an.instanceOf(_errors.ModelError);
       }
     });
 
@@ -63,3 +63,4 @@ describe('Model', function () {
     });
   });
 });
+//# sourceMappingURL=../tests/Model.spec.js.map

@@ -1,14 +1,17 @@
 import {Handler} from '../core';
+import {Error as MongooseError} from 'mongoose';
 import {ModelError} from '../errors';
-import {merge, has, forEach} from 'lodash';
+import {merge, has, forEach, isEqual} from 'lodash';
 
-import DEFAULT_ROUTES from '../constants';
+import {DEFAULT_ROUTES} from '../constants';
+
+var debug = require('debug')('phrame:handler:mongoose');
 
 export default class MongooseHandler extends Handler {
   constructor(model, routes) {
     super(model, routes || DEFAULT_ROUTES);
     this._model = model; // Save a reference
-    this.model = model.model; // Change for simplicity.
+    this.model = model.model; // Alias for simplicity.
   }
 
   /**
@@ -42,7 +45,7 @@ export default class MongooseHandler extends Handler {
     return new Promise((resolve, reject) => {
       // Reject if property not defined in schema defintion
       forEach(props, (v, prop) => {
-        if (!has(this._model.schemaDefinition, prop))
+        if (!isEqual(prop, '_id') && !has(this._model.schemaDefinition, prop))
           reject([new ModelError('Property ' + prop + ' does not exist on model'), 404]);
       });
 
@@ -60,7 +63,14 @@ export default class MongooseHandler extends Handler {
    * @return {Promise.<Array>}  [result, responseCode]
    */
   findById(id) {
-    return this.find({_id: id});
+    return new Promise((resolve, reject) => {
+      this.find({_id: id})
+        .then(resolve)
+        .catch(([err, code]) => {
+          if (err instanceof MongooseError.CastError) reject([new ModelError('Unknown ID "' + id + '"'), 404]);
+          else reject(err, code);
+        });
+    });
   }
 
   /**

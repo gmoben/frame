@@ -42,3 +42,4 @@ var AppError = (function (_Error2) {
 
 exports.AppError = AppError;
 exports['default'] = { ModelError: ModelError, AppError: AppError };
+//# sourceMappingURL=errors.js.map
