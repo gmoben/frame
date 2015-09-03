@@ -3,9 +3,6 @@
   "version": "0.0.4",
   "description": "Web apps without the work.",
   "main": "dist/index.js",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "test": "gulp test"
   },
