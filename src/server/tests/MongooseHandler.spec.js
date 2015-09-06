@@ -79,6 +79,14 @@ describe('MongooseHandler', () => {
 
   describe('#index()', () => {
     it('returns all documents via #find()');
+    it('returns the schema if passed true as an argument', done => {
+      albumHandler.index(true)
+        .then(([result, code]) => {
+          expect(result).to.equal(models.Album.schemaDefinition);
+          expect(code).to.equal(200);
+          done();
+        }).catch(done);
+    });
 
     // it('returns all documents via #find()', done => {
     //   handler.index()
@@ -146,7 +154,7 @@ describe('MongooseHandler', () => {
     });
 
     it('returns nothing if no models are found', done => {
-      albumHandler.find({'title': 'Not an album title'})
+      albumHandler.find({title: 'Not an album title'})
         .then(([result]) => {
           expect(result).to.be.empty;
           done();

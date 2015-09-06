@@ -44,7 +44,15 @@ var MongooseHandler = (function (_Handler) {
      * Retrieve all documents.
      * @return {Promise.<Array>}  [result, responseCode]
      */
-    value: function index() {
+    value: function index(getSchema) {
+      var _this = this;
+
+      if (!(0, _lodash.isUndefined)(getSchema)) {
+        return new Promise(function (resolve, reject) {
+          if ((0, _lodash.isUndefined)(_this._model.schemaDefinition)) reject([new Error('schema is undefined'), 500]);
+          resolve([_this._model.schemaDefinition, 200]);
+        });
+      }
       return this.find();
     }
   }, {
@@ -56,10 +64,10 @@ var MongooseHandler = (function (_Handler) {
      * @return {Promise.<Array>}  [result, responseCode]
      */
     value: function create(props) {
-      var _this = this;
+      var _this2 = this;
 
       return new Promise(function (resolve, reject) {
-        _this.model.create(props, function (err, result) {
+        _this2.model.create(props, function (err, result) {
           if (err) reject([err, 500]);
           resolve([result, 201]);
         });
@@ -74,17 +82,17 @@ var MongooseHandler = (function (_Handler) {
      * @return {Promise.<Array>} [result, responseCode]
      */
     value: function find() {
-      var _this2 = this;
+      var _this3 = this;
 
       var props = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
       return new Promise(function (resolve, reject) {
         // Reject if property not defined in schema defintion
         (0, _lodash.forEach)(props, function (v, prop) {
-          if (!(0, _lodash.isEqual)(prop, '_id') && !(0, _lodash.has)(_this2._model.schemaDefinition, prop)) reject([new _errors.ModelError('Property ' + prop + ' does not exist on model'), 404]);
+          if (!(0, _lodash.isEqual)(prop, '_id') && !(0, _lodash.has)(_this3._model.schemaDefinition, prop)) reject([new _errors.ModelError('Property ' + prop + ' does not exist on model'), 404]);
         });
 
-        _this2.model.find(props, function (err, result) {
+        _this3.model.find(props, function (err, result) {
           if (err) reject([err, 500]);
           if (!result) reject([new _errors.ModelError('Undefined result'), 404]);
           resolve([result, 200]);
@@ -100,10 +108,10 @@ var MongooseHandler = (function (_Handler) {
      * @return {Promise.<Array>}  [result, responseCode]
      */
     value: function findById(id) {
-      var _this3 = this;
+      var _this4 = this;
 
       return new Promise(function (resolve, reject) {
-        _this3.find({ _id: id }).then(resolve)['catch'](function (_ref) {
+        _this4.find({ _id: id }).then(resolve)['catch'](function (_ref) {
           var _ref2 = _slicedToArray(_ref, 2);
 
           var err = _ref2[0];
@@ -123,11 +131,11 @@ var MongooseHandler = (function (_Handler) {
      * @return {Promise.<Array>}  [result, responseCode]
      */
     value: function update(id, props) {
-      var _this4 = this;
+      var _this5 = this;
 
       return new Promise(function (resolve, reject) {
         if ('_id' in props) delete props._id;
-        _this4.model.findById(id, function (result) {
+        _this5.model.findById(id, function (result) {
           if (!result) reject([new _errors.ModelError('Docid ' + id + ' not found'), 404]);
           (0, _lodash.merge)(result, props).save(function (err) {
             if (err) reject([err, 500]);
@@ -145,10 +153,10 @@ var MongooseHandler = (function (_Handler) {
      * @return {Promise.<Array>}  [undefined, responseCode]
      */
     value: function remove(id) {
-      var _this5 = this;
+      var _this6 = this;
 
       return new Promise(function (resolve, reject) {
-        _this5.model.findById(id).exec().then(function (err, result) {
+        _this6.model.findById(id).exec().then(function (err, result) {
           if (err) reject([err, 500]);
           if (!result) reject([new _errors.ModelError('Docid ' + id + ' not found.'), 404]);
           result.remove(function (err2) {

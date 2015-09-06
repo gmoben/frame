@@ -1,6 +1,6 @@
 export const DEFAULT_ROUTES = [
   ['/', {
-    get: ['find'],
+    get: ['index', 'query.schema'],
     post: ['create', 'body']
   }],
   ['/:id', {

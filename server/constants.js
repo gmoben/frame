@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 var DEFAULT_ROUTES = [['/', {
-  get: ['find'],
+  get: ['index', 'query.schema'],
   post: ['create', 'body']
 }], ['/:id', {
   get: ['findById', 'params.id'],

@@ -1,7 +1,7 @@
 import {Handler} from '../core';
 import {Error as MongooseError} from 'mongoose';
 import {ModelError} from '../errors';
-import {merge, has, forEach, isEqual} from 'lodash';
+import {merge, has, forEach, isEqual, isUndefined} from 'lodash';
 
 import {DEFAULT_ROUTES} from '../constants';
 
@@ -18,7 +18,14 @@ export default class MongooseHandler extends Handler {
    * Retrieve all documents.
    * @return {Promise.<Array>}  [result, responseCode]
    */
-  index() {
+  index(getSchema) {
+    if (!isUndefined(getSchema)) {
+      return new Promise((resolve, reject) => {
+        if (isUndefined(this._model.schemaDefinition))
+          reject([new Error('schema is undefined'), 500]);
+        resolve([this._model.schemaDefinition, 200]);
+      });
+    }
     return this.find();
   }
 

@@ -108,6 +108,18 @@ describe('MongooseHandler', function () {
 
   describe('#index()', function () {
     it('returns all documents via #find()');
+    it('returns the schema if passed true as an argument', function (done) {
+      albumHandler.index(true).then(function (_ref5) {
+        var _ref52 = _slicedToArray(_ref5, 2);
+
+        var result = _ref52[0];
+        var code = _ref52[1];
+
+        (0, _chai.expect)(result).to.equal(_fixtures.models.Album.schemaDefinition);
+        (0, _chai.expect)(code).to.equal(200);
+        done();
+      })['catch'](done);
+    });
 
     // it('returns all documents via #find()', done => {
     //   handler.index()
@@ -122,11 +134,11 @@ describe('MongooseHandler', function () {
 
     it('creates a model from given props', function (done) {
       var TITLE = 'Cool Album!';
-      albumHandler.create({ title: TITLE }).then(function (_ref5) {
-        var _ref52 = _slicedToArray(_ref5, 2);
+      albumHandler.create({ title: TITLE }).then(function (_ref6) {
+        var _ref62 = _slicedToArray(_ref6, 2);
 
-        var result = _ref52[0];
-        var code = _ref52[1];
+        var result = _ref62[0];
+        var code = _ref62[1];
 
         (0, _chai.expect)(result.toObject()).to.contain.keys('title', 'photos');
         (0, _chai.expect)(result.title).to.equal(TITLE);
@@ -169,10 +181,10 @@ describe('MongooseHandler', function () {
     })();
 
     beforeEach(function (done) {
-      albumHandler.create(albumProps).then(function (_ref6) {
-        var _ref62 = _slicedToArray(_ref6, 1);
+      albumHandler.create(albumProps).then(function (_ref7) {
+        var _ref72 = _slicedToArray(_ref7, 1);
 
-        var album = _ref62[0];
+        var album = _ref72[0];
 
         return Promise.all((function () {
           var _Promise$all = [];
@@ -210,10 +222,10 @@ describe('MongooseHandler', function () {
     });
 
     it('returns documents matching given props', function (done) {
-      albumHandler.find(albumProps).then(function (_ref7) {
-        var _ref72 = _slicedToArray(_ref7, 1);
+      albumHandler.find(albumProps).then(function (_ref8) {
+        var _ref82 = _slicedToArray(_ref8, 1);
 
-        var results = _ref72[0];
+        var results = _ref82[0];
 
         (0, _chai.expect)(results).to.have.length(1);
         var album = results[0];
@@ -247,20 +259,20 @@ describe('MongooseHandler', function () {
           return _ref;
         })();
         done();
-      })['catch'](function (_ref8) {
-        var _ref82 = _slicedToArray(_ref8, 1);
+      })['catch'](function (_ref9) {
+        var _ref92 = _slicedToArray(_ref9, 1);
 
-        var err = _ref82[0];
+        var err = _ref92[0];
 
         done(err);
       });
     });
 
     it('returns all documents if no props', function (done) {
-      photoHandler.find().then(function (_ref9) {
-        var _ref92 = _slicedToArray(_ref9, 1);
+      photoHandler.find().then(function (_ref10) {
+        var _ref102 = _slicedToArray(_ref10, 1);
 
-        var results = _ref92[0];
+        var results = _ref102[0];
 
         (0, _chai.expect)(results).to.have.length(photoPropsList.length);
         done();
@@ -268,10 +280,10 @@ describe('MongooseHandler', function () {
     });
 
     it('returns nothing if no models are found', function (done) {
-      albumHandler.find({ 'title': 'Not an album title' }).then(function (_ref10) {
-        var _ref102 = _slicedToArray(_ref10, 1);
+      albumHandler.find({ title: 'Not an album title' }).then(function (_ref11) {
+        var _ref112 = _slicedToArray(_ref11, 1);
 
-        var result = _ref102[0];
+        var result = _ref112[0];
 
         (0, _chai.expect)(result).to.be.empty;
         done();
@@ -281,11 +293,11 @@ describe('MongooseHandler', function () {
     it('throws if property doesnt exist in model\'s schema definition', function (done) {
       albumHandler.find({ lololol: 'this isn\'t a prop' }).then(function () {
         return done('This shoudn\'t have worked!');
-      })['catch'](function (_ref11) {
-        var _ref112 = _slicedToArray(_ref11, 2);
+      })['catch'](function (_ref12) {
+        var _ref122 = _slicedToArray(_ref12, 2);
 
-        var err = _ref112[0];
-        var code = _ref112[1];
+        var err = _ref122[0];
+        var code = _ref122[1];
 
         (0, _chai.expect)(err).to.be.an['instanceof'](_errors.ModelError);
         (0, _chai.expect)(code).to.equal(404);
